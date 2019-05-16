@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+{% block title %} UserManageMent {% endblock %}
+{% block body %}
+    
+    {% if users %}
+        <table id="myUsers" class="table table-striped">
+          <thead>
+            <tr>
+              <th>User Login</th>
+              <th>Email</th>
+              <th>First Name</th>
+              <th>Edit</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for myUser in users %}
+              <tr>
+                <td>{{ myUser.login }}</td>
+                <td>{{ myUser.email }}</td>
+                <td>{{ myUser.firstName }}</td>
+                <td>
+                  <a href="/edituser/{{ myUser.id }}" class="btn btn-light">Edit</a>
+                </td>
+                <td>
+                  <a href="/deleteuser/{{ myUser.id }}" class="btn btn-danger">Delete</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    {% else %}
+        <p>No User to display</p>
+    {% endif %}
+    
+{% endblock %}

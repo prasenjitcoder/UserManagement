@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+{% block title %} UserManageMent {% endblock %}
+{% block body %}
+    
+    {% if groups %}
+        <table id="myUsers" class="table table-striped">
+          <thead>
+            <tr>
+              <th>Group Name</th>
+              <th>Group Description</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for myGroup in groups %}
+              <tr>
+                <td>{{ myGroup.groupName }}</td>
+                <td>{{ myGroup.groupDesc }}</td>
+                <td>
+                  <a href="/deletegroup/{{ myGroup.id }}" class="btn btn-danger">Delete</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    {% else %}
+        <p>No Group to display</p>
+    {% endif %}
+    
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit User{% endblock %}
+
+
+{% block body %}
+    
+    {% if user %}
+        <form action="/updateuser" method="post">
+            <input type="hidden" name="userId" value="{{ user.id }}"/>
+            <div>
+                <span>User Login : </span><span>{{ user.login }}</span>
+                <br>
+                <span>User Email : </span><span>{{ user.email }}</span>
+            </div>  
+            <br><br>
+            <div>
+                <h4>Existing groups. Select one or more to remove</h4>
+                <span>
+                    <select multiple class="form-control" name="removeGrp[]">
+                        {% for myExistingGrp in userExistingGrps %}
+                            <option value="{{ myExistingGrp.userGroupId }}">{{ myExistingGrp.groupName }}</option>
+                        {% endfor %}
+                     </select>
+                </span>
+            </div> 
+            <br><br>
+            <div>
+                <h4>Select one or more to add  user to group</h4>
+                <span>
+                    <select multiple class="form-control" name="addGrp[]">
+                        {% for myNonExistingGrp in myUserNonExistingGrps %}
+                            <option value="{{ myNonExistingGrp.id }}">{{ myNonExistingGrp.groupName }}</option>
+                        {% endfor %}
+                     </select>
+                </span>
+            </div>
+            <br>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    {% else %}
+        <p>No User to display</p>
+    {% endif %}
+    
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+{% block title %} UserManageMent {% endblock %}
+{% block body %}
+    {% if error %}
+        <span class="badge badge-danger">{{ error }}</span>
+        <br>
+    {% endif %}
+    <form action="/authenticate" method="post">
+        <div>
+            <span><label for="username">Username:</label></span>
+            <span><input type="text" id="username" name="username" value=""{{ last_username }}/></span>
+        </div>
+        <div>
+            <span><label for="password">Password:</label></span>
+            <span><input type="password" id="password" name="password" /></span>
+        </div>
+        <div>
+            <span><button type="submit">login</button></span>
+        </div>
+    </form>
+{% endblock %}
