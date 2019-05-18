@@ -6,7 +6,7 @@
         <table id="myUsers" class="table table-striped">
           <thead>
             <tr>
-              <th>User Login</th>
+              <th>User Name</th>
               <th>Email</th>
               <th>First Name</th>
               <th>Edit</th>
@@ -16,7 +16,7 @@
           <tbody>
             {% for myUser in users %}
               <tr>
-                <td>{{ myUser.login }}</td>
+                <td>{{ myUser.username }}</td>
                 <td>{{ myUser.email }}</td>
                 <td>{{ myUser.firstName }}</td>
                 <td>

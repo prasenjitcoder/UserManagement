@@ -2,27 +2,22 @@
 {% block title %} UserManageMent {% endblock %}
 {% block body %}
     
-    <div align="right">
-        <a href="/logout">Logout</a>
+    <div align="left">
+         {% if is_granted('ROLE_ADMIN') %} 
+            <a href="/adduser">Add User</a>
+            <br>
+            <a href="/userlist">Delete/Edit User</a>
+            <br>
+            <a href="/addgroup">Add Group</a>
+            <br>
+            <a href="/grouplist">Display Group</a>
+            <br>
+            <a href="/userlist">Add User To A group</a>
+            <br>
+            <a href="/deletegroups">Delete Group</a>
+        {% else %} 
+            <h1>Comming Soon.....</h1>
+        {% endif %}       
     </div>
-    
-    {% if message %}
-        <span class="badge badge-danger">{{ message }}</span>
-        <br>
-    {% endif %}
-    
-    {% if isAdmin==true %}
-        <a href="/adduser">Add User</a>
-        <br>
-        <a href="/userlist">Delete/Edit User</a>
-        <br>
-        <a href="/addgroup">Add Group</a>
-        <br>
-        <a href="/grouplist">Display Group</a>
-        <br>
-        <a href="/userlist">Add User To A group</a>
-        <br>
-        <a href="/deletegroups">Delete Group</a>
-    {% endif %}
     
 {% endblock %}
