@@ -3,11 +3,11 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
+use Symfony\Component\Security\Core\User\UserInterface;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
  */
-class User extends GenericEntity
+class User extends GenericEntity implements UserInterface, \Serializable
 {
     /**
      * @ORM\Id()
@@ -25,7 +25,7 @@ class User extends GenericEntity
     /**
      * @ORM\Column(type="string",length=150,unique=true)
      */
-    private $login;
+    private $username;
     /**
      * @ORM\Column(type="string",length=150)
      */
@@ -65,10 +65,6 @@ class User extends GenericEntity
         return $this->lastModTime;
     }
 
-    public function getLogin() {
-        return $this->login;
-    }
-
     public function getPassword() {
         return $this->password;
     }
@@ -91,10 +87,6 @@ class User extends GenericEntity
 
     public function setLastModTime($lastModTime) {
         $this->lastModTime = $lastModTime;
-    }
-
-    public function setLogin($login) {
-        $this->login = $login;
     }
 
     public function setPassword($password) {
@@ -120,6 +112,48 @@ class User extends GenericEntity
    public function setUserGroups($userGroups) {
         $this->userGroups = $userGroups;
     }
+    public function getUsername() {
+        return $this->username;
+    }
 
+    public function setUsername($username) {
+        $this->username = $username;
+    }
+
+    
+    public function getRoles(): array
+    {
+        $roles = null;
+        // guarantees that a user always has at least one role for security
+        if ($this->username=='Admin') {
+            $roles[] = 'ROLE_ADMIN';
+        }else{
+            $roles[] = 'ROLE_USER';
+        }
+        return array_unique($roles);
+    }
+
+    public function getSalt(){
+        
+    }
+    public function eraseCredentials(){
+        
+    }
+     /**
+     * {@inheritdoc}
+     */
+    public function serialize(): string
+    {
+        // add $this->salt too if you don't use Bcrypt or Argon2i
+        return serialize([$this->id, $this->username, $this->password]);
+    }
+    /**
+     * {@inheritdoc}
+     */
+    public function unserialize($serialized): void
+    {
+        // add $this->salt too if you don't use Bcrypt or Argon2i
+        [$this->id, $this->username, $this->password] = unserialize($serialized, ['allowed_classes' => false]);
+    }
 
 }

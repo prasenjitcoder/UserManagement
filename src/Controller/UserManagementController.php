@@ -17,10 +17,13 @@ use App\Entity\User;
 use App\Entity\AppGroup;
 use Psr\Log\LoggerInterface;
 use App\Helper\Checker;
+use App\Helper\UserManagementHelper;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * Description of AuthenticateController
- *
+ * @IsGranted("ROLE_ADMIN")
  * @author PrasenjitM
  */
 //I have not done exception handling in Controller
@@ -30,28 +33,33 @@ class UserManagementController extends PrivateController {
      * @Route("/adduser", name="adduser")
      * Method({"GET", "POST"})
      */
-    public function adduser(Request $request) {
+    public function adduser(Request $request, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger) {
         $startTime = parent::startFunction("UserManagementController", "adduser");
         try {
             $myNewUser = new User();
             $form = $this->createUserForm($myNewUser);
             $form->handleRequest($request);
-
+            $errors = null;
             if ($form->isSubmitted() && $form->isValid()) {
                 $myNewUser = $form->getData();
                 $myUsermanagementservice = $this->get('app.usermanagementservice');
-                $myUsermanagementservice->addNewUser($myNewUser);
-                return $this->redirectToRoute('userlist');
+                $errors = UserManagementHelper::validateNewUser($myNewUser, $myUsermanagementservice);
+                if (!Checker::isFilledArray($errors)) {
+                    $myNewUser->setPassword($passwordEncoder->encodePassword($myNewUser, $myNewUser->getPassword()));
+                    $myUsermanagementservice->addNewUser($myNewUser);
+                    return $this->redirectToRoute('userlist');
+                }
             }
             return $this->render('usermanagement/adduser.html.twig', array(
-                        'form' => $form->createView(), 'error' => null
+                        'form' => $form->createView(), 'error' => UserManagementHelper::getErrors($errors)
             ));
         } catch (\Exception $ex) {
-            $errorMessage = $ex->getMessage();
+            $logger->info("Error While Adding User : " . $ex->getMessage());
+            $errorMessage = "Error While Adding User. Please check the provided details";
             $myNewUser = new User();
             $form = $this->createUserForm($myNewUser);
             return $this->render('usermanagement/adduser.html.twig', array(
-                        'form' => $form->createView(), 'error' => 'Error - Please check the provided details' . $errorMessage
+                        'form' => $form->createView(), 'error' => $errorMessage
             ));
         } finally {
             parent::endFunction("UserManagementController", "adduser", $startTime);
@@ -62,51 +70,55 @@ class UserManagementController extends PrivateController {
      * @Route("/addgroup", name="addgroup")
      * Method({"GET", "POST"})
      */
-    public function addgroup(Request $request) {
+    public function addgroup(Request $request, LoggerInterface $logger) {
         $startTime = parent::startFunction("UserManagementController", "addgroup");
         try {
             $myNewGroup = new AppGroup();
             $form = $this->createGroupForm($myNewGroup);
             $form->handleRequest($request);
-
+            $errors = null;
             if ($form->isSubmitted() && $form->isValid()) {
                 $myNewGroup = $form->getData();
                 $myUsermanagementservice = $this->get('app.usermanagementservice');
-                $myUsermanagementservice->addNewGroup($myNewGroup);
-                return $this->redirectToRoute('grouplist');
+                $errors = UserManagementHelper::validateNewGroup($myNewGroup, $myUsermanagementservice);
+                if (!Checker::isFilledArray($errors)) {
+                    $myUsermanagementservice->addNewGroup($myNewGroup);
+                    return $this->redirectToRoute('grouplist');
+                }
             }
             return $this->render('usermanagement/addgroup.html.twig', array(
-                        'form' => $form->createView(), 'error' => null
+                        'form' => $form->createView(), 'error' => UserManagementHelper::getErrors($errors)
             ));
         } catch (\Exception $ex) {
-            $errorMessage = $ex->getMessage();
+            $logger->info("Error While Adding Group : " . $ex->getMessage());
+            $errorMessage = "Error - Please check the provided details";
             $myNewGroup = new AppGroup();
             $form = $this->createGroupForm($myNewGroup);
             return $this->render('usermanagement/addgroup.html.twig', array(
-                        'form' => $form->createView(), 'error' => 'Error - Please check the provided details' . $errorMessage
+                        'form' => $form->createView(), 'error' => $errorMessage
             ));
         } finally {
             parent::endFunction("UserManagementController", "addgroup", $startTime);
         }
     }
-     /**
+
+    /**
      * @Route("/grouplist", name="grouplist")
      * Method({"GET", "POST"})
      */
     public function grouplist() {
         $startTime = parent::startFunction("UserManagementController", "grouplist");
         try {
-             $myUsermanagementservice = $this->get('app.usermanagementservice');
-             $myAllGroups = $myUsermanagementservice->findAllGroup();
-             return $this->render('usermanagement/grouplist.html.twig', array('groups' => $myAllGroups));
+            $myUsermanagementservice = $this->get('app.usermanagementservice');
+            $myAllGroups = $myUsermanagementservice->findAllGroup();
+            return $this->render('usermanagement/grouplist.html.twig', array('groups' => $myAllGroups));
         } catch (\Exception $ex) {
-
+            
         } finally {
             parent::endFunction("UserManagementController", "grouplist", $startTime);
         }
     }
-    
-    
+
     /**
      * @Route("/deletegroup/{id}", name="deletegroup")
      * Method({"GET", "POST"})
@@ -123,9 +135,7 @@ class UserManagementController extends PrivateController {
             parent::endFunction("UserManagementController", "deletegroupById", $startTime);
         }
     }
-    
-    
-    
+
     /**
      * @Route("/deletegroups", name="deletegroups")
      * Method({"GET", "POST"})
@@ -133,10 +143,11 @@ class UserManagementController extends PrivateController {
     public function unassignedgrouplist() {
         $startTime = parent::startFunction("UserManagementController", "deletegroups");
         try {
-             $myUsermanagementservice = $this->get('app.usermanagementservice');
-             $myAllGroups = $myUsermanagementservice->getGroupsWhichNotBelongsToUser();
-             return $this->render('usermanagement/deletegrouplist.html.twig', array('groups' => $myAllGroups));
+            $myUsermanagementservice = $this->get('app.usermanagementservice');
+            $myAllGroups = $myUsermanagementservice->getGroupsWhichNotBelongsToUser();
+            return $this->render('usermanagement/deletegrouplist.html.twig', array('groups' => $myAllGroups));
         } catch (\Exception $ex) {
+            
         } finally {
             parent::endFunction("UserManagementController", "deletegroups", $startTime);
         }
@@ -191,8 +202,8 @@ class UserManagementController extends PrivateController {
                 $userExistingGrps = array();
                 $myUserNonExistingGrp = array();
                 if (Checker::isFilledArray($myUserExistingUserGrp)) {
-                    $userExistingGrps = $this->getUserGroups($myUserExistingUserGrp, $myAllGrps);
-                    $myUserNonExistingGrp = $this->getGrpsNotAssignToUser($myUserExistingUserGrp, $myAllGrps);
+                    $userExistingGrps = UserManagementHelper::getUserGroups($myUserExistingUserGrp, $myAllGrps);
+                    $myUserNonExistingGrp = UserManagementHelper::getGrpsNotAssignToUser($myUserExistingUserGrp, $myAllGrps);
                 } else {
                     $myUserNonExistingGrp = $myAllGrps;
                 }
@@ -235,54 +246,12 @@ class UserManagementController extends PrivateController {
 
     /**
      * 
-     * @param type $myUserExistingUserGrp
-     * @param type $myAllGrps
-     * @return type
-     */
-    private function getUserGroups($myUserExistingUserGrp, $myAllGrps) {
-        $userGroups = array();
-        foreach ($myUserExistingUserGrp as $myUserGroup) {
-            foreach ($myAllGrps as $myGroup) {
-                if ($myGroup->getId() == $myUserGroup->getGroupId()) {
-                    $userGroups[] = array('userGroupId' => $myUserGroup->getId(), 'groupName' => $myGroup->getGroupName());
-                    break;
-                }
-            }
-        }
-        return $userGroups;
-    }
-
-    /**
-     * 
-     * @param type $myUserExistingGrp
-     * @param type $myAllGrps
-     * @return type
-     */
-    private function getGrpsNotAssignToUser($myUserExistingGrp, $myAllGrps) {
-        $groups = array();
-        foreach ($myAllGrps as $myGroup) {
-            $grpPresent = false;
-            foreach ($myUserExistingGrp as $myUserGroup) {
-                if ($myUserGroup->getGroupId() == $myGroup->getId()) {
-                    $grpPresent = true;
-                    break;
-                }
-            }
-            if (!$grpPresent) {
-                $groups[] = $myGroup;
-            }
-        }
-        return $groups;
-    }
-
-    /**
-     * 
      * @param type $myNewUser
      * @return type
      */
     private function createUserForm($myNewUser) {
         $form = $this->createFormBuilder($myNewUser)
-                ->add('login', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
+                ->add('username', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
                 ->add('password', PasswordType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
                 ->add('email', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
                 ->add('firstName', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))

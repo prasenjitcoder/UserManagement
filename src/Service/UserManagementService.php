@@ -39,7 +39,7 @@ class UserManagementService extends GenericService {
      * @param type $password
      * @return type
      */
-    public function checkUser($userName, $password) {
+    public function checkUser(string $userName, string $password):User{
         try {
             $repository = $this->em->getRepository(User::class);
             $myUser = $repository->findOneBy([
@@ -51,13 +51,84 @@ class UserManagementService extends GenericService {
             parent::manageException($ex);
         }
     }
-
+    /**
+     * 
+     * @param string $userName
+     * @return bool
+     */
+    public function isUserNamePresent(string $userName):bool{
+        try {
+            //$repository = $this->em->getRepository(User::class);
+           // $myUser = $repository->findOneBy([
+              // 'upper(username)' => strtoupper($userName)
+            //]);
+            
+             $query = $this->em->createQuery(
+                    'select count(u.id) from \App\Entity\User u where upper(u.username)=?1'
+            );
+            $query->setParameter(1, strtoupper($userName));
+            $myUserCount = $query->getSingleScalarResult();
+            
+            if($myUserCount!=null && $myUserCount>0){
+                return true;
+            }else{
+                return false;
+            }
+        } catch (Exception $ex) {
+            parent::manageException($ex);
+        }
+    }
+    /**
+     * 
+     * @param string $email
+     * @return bool
+     */
+    public function isEmailPresent(string $email):bool{
+        try {
+            $query = $this->em->createQuery(
+                    'select count(u.id) from \App\Entity\User u where upper(u.email)=?1'
+            );
+            $query->setParameter(1, strtoupper($email));
+            $myUserCount = $query->getSingleScalarResult();
+            
+            if($myUserCount!=null && $myUserCount>0){
+                return true;
+            }else{
+                return false;
+            }
+        } catch (Exception $ex) {
+            parent::manageException($ex);
+        }
+    }
+    /**
+     * 
+     * @param string $groupName
+     * @return bool
+     */
+    public function isGroupPresent(string $groupName):bool{
+        try {
+            $query = $this->em->createQuery(
+                    'select count(u.id) from \App\Entity\AppGroup u where upper(u.groupName)=?1'
+            );
+            $query->setParameter(1, strtoupper($groupName));
+            $myGroupCount = $query->getSingleScalarResult();
+            
+            if($myGroupCount!=null && $myGroupCount>0){
+                return true;
+            }else{
+                return false;
+            }
+        } catch (Exception $ex) {
+            parent::manageException($ex);
+        }
+    }
+    
     /**
      * 
      * @param type $myUserGroups
      * @return boolean
      */
-    public function isAdminUser($myUserGroups) {
+    public function isAdminUser($myUserGroups): bool {
         try {
             $repository = $this->em->getRepository(AppGroup::class);
             $groupIds[] = null;
@@ -66,11 +137,7 @@ class UserManagementService extends GenericService {
             }
             $myGroups = $repository->findById($groupIds);
             if (Checker::isFilledArray($myGroups)) {
-                foreach ($myGroups as $myGroup) {
-                    if ($myGroup->getGroupName() == 'Admin') {
-                        return true;
-                    }
-                }
+                return $this->isAdmin($myGroups);
             } else {
                 return false;
             }
@@ -126,7 +193,7 @@ class UserManagementService extends GenericService {
      * 
      * @param type $id
      */
-    public function deleteUserById($id) {
+    public function deleteUserById(int $id) {
         try {
             $repository = $this->em->getRepository(User::class);
             $myUser = $repository->find($id);
@@ -141,7 +208,7 @@ class UserManagementService extends GenericService {
      * 
      * @param type $id
      */
-    public function deleteGroupById($id) {
+    public function deleteGroupById(int $id) {
         try {
             $repository = $this->em->getRepository(AppGroup::class);
             $myGroup = $repository->find($id);
@@ -157,7 +224,7 @@ class UserManagementService extends GenericService {
      * @param type $id
      * @return type
      */
-    public function getUserById($id) {
+    public function getUserById(int $id): User {
         try {
             return $this->findUserById($id);
         } catch (Exception $ex) {
@@ -256,9 +323,20 @@ class UserManagementService extends GenericService {
      * @param type $id
      * @return type
      */
-    private function findUserById($id) {
+    private function findUserById(int $id) {
         $repository = $this->em->getRepository(User::class);
         return $repository->find($id);
     }
-
+    /**
+     * 
+     * @param AppGroup $myGroups
+     * @return bool
+     */
+     private function isAdmin($myGroups): bool {
+        foreach ($myGroups as $myGroup) {
+            if ($myGroup->getGroupName() == 'Admin') {
+                return true;
+            }
+        }
+    }
 }

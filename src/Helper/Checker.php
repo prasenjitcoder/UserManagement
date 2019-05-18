@@ -20,7 +20,7 @@ class Checker {
      * @param type $myArray
      * @return boolean
      */
-    public static function isFilledArray($myArray) {
+    public static function isFilledArray($myArray) : bool {
         if ($myArray != null && count($myArray) > 0) {
             return true;
         }

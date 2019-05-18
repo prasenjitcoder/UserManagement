@@ -9,7 +9,6 @@
 namespace App\Controller;
 
 use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
  * Description of PublicController
@@ -27,18 +26,7 @@ class PublicController extends CommonController {
     public function __construct(LoggerInterface $logger) {
         parent::__construct($logger);
         $this->logger = $logger;
+        //All the controller which will be used before login , need to extends it. Here we can perform any action if required
     }
-    /**
-     * 
-     * @param SessionInterface $session
-     * @return type
-     */
-    public function checkLogin(SessionInterface $session) {
-        if ($session != null && $session->get('myUserSession')!=null) {
-            $myUserSession = $session->get('myUserSession');
-            $isLogged = $myUserSession->getIsLoged();
-            $homePageData = $myUserSession->getHomePageData();
-            return $homePageData;
-        }
-    }
+
 }

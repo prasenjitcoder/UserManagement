@@ -35,11 +35,11 @@ class PrivateController extends CommonController {
      * @return type
      */
     public function checkLogin(SessionInterface $session) {
-        if ($session != null && $session->get('myUserSession') != null) {
+
             //We have session. Here we willl check if the user has the rights to access the path or not
-        }else{
+
             //We will throw an exception and will handle in controller. have not done this part
-        }
+
     }
 
 }
