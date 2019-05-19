@@ -13,6 +13,7 @@ use App\Entity\UserGroup;
 use App\Helper\Checker;
 use App\Entity\User;
 use App\Entity\AppGroup;
+use Psr\Log\LoggerInterface;
 
 /**
  * Description of UserManagementService
@@ -24,13 +25,16 @@ use App\Entity\AppGroup;
 class UserManagementService extends GenericService {
 
     private $em;
+    private $logger;
 
     /**
      * 
      * @param EntityManagerInterface $em
      */
-    public function __construct(EntityManagerInterface $em) {
+    public function __construct(EntityManagerInterface $em,LoggerInterface $logger) {
+        parent::__construct($logger);
         $this->em = $em;
+        $this->logger = $logger;
     }
 
     /**
@@ -40,6 +44,7 @@ class UserManagementService extends GenericService {
      * @return type
      */
     public function checkUser(string $userName, string $password):User{
+        $startTime = parent::startFunction("UserManagementService", "checkUser");
         try {
             $repository = $this->em->getRepository(User::class);
             $myUser = $repository->findOneBy([
@@ -49,6 +54,8 @@ class UserManagementService extends GenericService {
             return $myUser;
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "checkUser", $startTime);
         }
     }
     /**
@@ -57,12 +64,8 @@ class UserManagementService extends GenericService {
      * @return bool
      */
     public function isUserNamePresent(string $userName):bool{
-        try {
-            //$repository = $this->em->getRepository(User::class);
-           // $myUser = $repository->findOneBy([
-              // 'upper(username)' => strtoupper($userName)
-            //]);
-            
+        $startTime = parent::startFunction("UserManagementService", "isUserNamePresent");
+        try {           
              $query = $this->em->createQuery(
                     'select count(u.id) from \App\Entity\User u where upper(u.username)=?1'
             );
@@ -76,6 +79,8 @@ class UserManagementService extends GenericService {
             }
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "isUserNamePresent", $startTime);
         }
     }
     /**
@@ -84,6 +89,7 @@ class UserManagementService extends GenericService {
      * @return bool
      */
     public function isEmailPresent(string $email):bool{
+         $startTime = parent::startFunction("UserManagementService", "isEmailPresent");
         try {
             $query = $this->em->createQuery(
                     'select count(u.id) from \App\Entity\User u where upper(u.email)=?1'
@@ -98,6 +104,8 @@ class UserManagementService extends GenericService {
             }
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "isEmailPresent", $startTime);
         }
     }
     /**
@@ -106,6 +114,7 @@ class UserManagementService extends GenericService {
      * @return bool
      */
     public function isGroupPresent(string $groupName):bool{
+         $startTime = parent::startFunction("UserManagementService", "isGroupPresent");
         try {
             $query = $this->em->createQuery(
                     'select count(u.id) from \App\Entity\AppGroup u where upper(u.groupName)=?1'
@@ -120,6 +129,8 @@ class UserManagementService extends GenericService {
             }
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "isGroupPresent", $startTime);
         }
     }
     
@@ -129,6 +140,7 @@ class UserManagementService extends GenericService {
      * @return boolean
      */
     public function isAdminUser($myUserGroups): bool {
+         $startTime = parent::startFunction("UserManagementService", "isAdminUser");
         try {
             $repository = $this->em->getRepository(AppGroup::class);
             $groupIds[] = null;
@@ -143,6 +155,8 @@ class UserManagementService extends GenericService {
             }
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "isAdminUser", $startTime);
         }
     }
 
@@ -150,7 +164,8 @@ class UserManagementService extends GenericService {
      * 
      * @param type $myNewUser
      */
-    public function addNewUser(User $myNewUser) {
+    public function addNewUser(User $myNewUser) : void {
+         $startTime = parent::startFunction("UserManagementService", "addNewUser");
         try {
             $myNewUser->setCreationTime(new \DateTime());
             $myNewUser->setLastModTime(new \DateTime());
@@ -158,6 +173,8 @@ class UserManagementService extends GenericService {
             $this->em->flush();
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "addNewUser", $startTime);
         }
     }
 
@@ -165,7 +182,8 @@ class UserManagementService extends GenericService {
      * 
      * @param type $myNewGroup
      */
-    public function addNewGroup(AppGroup $myNewGroup) {
+    public function addNewGroup(AppGroup $myNewGroup):void {
+         $startTime = parent::startFunction("UserManagementService", "addNewGroup");
         try {
             $myNewGroup->setCreationTime(new \DateTime());
             $myNewGroup->setLastModTime(new \DateTime());
@@ -173,6 +191,8 @@ class UserManagementService extends GenericService {
             $this->em->flush();
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "addNewGroup", $startTime);
         }
     }
 
@@ -180,12 +200,15 @@ class UserManagementService extends GenericService {
      * 
      * @return type
      */
-    public function findAllUser() {
+    public function findAllUser():array {
+         $startTime = parent::startFunction("UserManagementService", "findAllUser");
         try {
             $repository = $this->em->getRepository(User::class);
             return $repository->findAll();
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "findAllUser", $startTime);
         }
     }
 
@@ -193,7 +216,8 @@ class UserManagementService extends GenericService {
      * 
      * @param type $id
      */
-    public function deleteUserById(int $id) {
+    public function deleteUserById(int $id):void {
+         $startTime = parent::startFunction("UserManagementService", "deleteUserById");
         try {
             $repository = $this->em->getRepository(User::class);
             $myUser = $repository->find($id);
@@ -201,6 +225,8 @@ class UserManagementService extends GenericService {
             $this->em->flush();
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "deleteUserById", $startTime);
         }
     }
 
@@ -208,7 +234,8 @@ class UserManagementService extends GenericService {
      * 
      * @param type $id
      */
-    public function deleteGroupById(int $id) {
+    public function deleteGroupById(int $id):void {
+         $startTime = parent::startFunction("UserManagementService", "deleteGroupById");
         try {
             $repository = $this->em->getRepository(AppGroup::class);
             $myGroup = $repository->find($id);
@@ -216,6 +243,8 @@ class UserManagementService extends GenericService {
             $this->em->flush();
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "deleteGroupById", $startTime);
         }
     }
 
@@ -225,10 +254,13 @@ class UserManagementService extends GenericService {
      * @return type
      */
     public function getUserById(int $id): User {
+         $startTime = parent::startFunction("UserManagementService", "getUserById");
         try {
             return $this->findUserById($id);
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "getUserById", $startTime);
         }
     }
 
@@ -236,12 +268,15 @@ class UserManagementService extends GenericService {
      * 
      * @return type
      */
-    public function findAllGroup() {
+    public function findAllGroup():array {
+         $startTime = parent::startFunction("UserManagementService", "findAllGroup");
         try {
             $repository = $this->em->getRepository(AppGroup::class);
             return $repository->findAll();
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "findAllGroup", $startTime);
         }
     }
 
@@ -250,12 +285,15 @@ class UserManagementService extends GenericService {
      * @param type $groupIds
      * @return type
      */
-    public function getGroupsByIds($groupIds) {
+    public function getGroupsByIds($groupIds): AppGroup{
+         $startTime = parent::startFunction("UserManagementService", "getGroupsByIds");
         try {
             $repository = $this->em->getRepository(AppGroup::class);
             return $repository->findById($groupIds);
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "getGroupsByIds", $startTime);
         }
     }
 
@@ -263,7 +301,8 @@ class UserManagementService extends GenericService {
      * 
      * @param type $ids
      */
-    public function deleteUserGroupByIds($ids) {
+    public function deleteUserGroupByIds($ids):void {
+         $startTime = parent::startFunction("UserManagementService", "deleteUserGroupByIds");
         try {
             $repository = $this->em->getRepository(UserGroup::class);
             if ($ids != null) {
@@ -275,6 +314,8 @@ class UserManagementService extends GenericService {
             }
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "deleteUserGroupByIds", $startTime);
         }
     }
 
@@ -283,7 +324,8 @@ class UserManagementService extends GenericService {
      * @param type $userId
      * @param type $groupIds
      */
-    public function addUserToGroup($userId, $groupIds) {
+    public function addUserToGroup($userId, $groupIds):void {
+         $startTime = parent::startFunction("UserManagementService", "addUserToGroup");
         try {
             $myUser = $this->findUserById($userId);
             if ($groupIds != null) {
@@ -299,6 +341,8 @@ class UserManagementService extends GenericService {
             }
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "addUserToGroup", $startTime);
         }
     }
 
@@ -306,7 +350,8 @@ class UserManagementService extends GenericService {
      * 
      * @return type
      */
-    public function getGroupsWhichNotBelongsToUser() {
+    public function getGroupsWhichNotBelongsToUser():array {
+         $startTime = parent::startFunction("UserManagementService", "getGroupsWhichNotBelongsToUser");
         try {
             $query = $this->em->createQuery(
                     'select a from \App\Entity\AppGroup a where a.id not in (select DISTINCT u.groupId from \App\Entity\UserGroup u)'
@@ -315,6 +360,31 @@ class UserManagementService extends GenericService {
             return $query->execute();
         } catch (Exception $ex) {
             parent::manageException($ex);
+        }finally {
+            parent::endFunction("UserManagementService", "getGroupsWhichNotBelongsToUser", $startTime);
+        }
+    }
+    
+    /**
+     * 
+     * @param int $groupId
+     * @return bool
+     */
+    public function isGroupCanBeDeleted(int $groupId): bool {
+        $startTime = parent::startFunction("UserManagementService", "isGroupCanBeDeleted");
+        try {
+            $repository = $this->em->getRepository(UserGroup::class);
+            $myUserGroup = $repository->findBy([
+                'groupId' => $groupId
+            ]);
+            if (Checker::isFilledArray($myUserGroup)) {
+                return false;
+            }
+            return true;
+        } catch (Exception $ex) {
+            parent::manageException($ex);
+        } finally {
+            parent::endFunction("UserManagementService", "isGroupCanBeDeleted", $startTime);
         }
     }
 
@@ -323,7 +393,7 @@ class UserManagementService extends GenericService {
      * @param type $id
      * @return type
      */
-    private function findUserById(int $id) {
+    private function findUserById(int $id):User {
         $repository = $this->em->getRepository(User::class);
         return $repository->find($id);
     }

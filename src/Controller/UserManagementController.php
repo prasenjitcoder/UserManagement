@@ -35,8 +35,8 @@ class UserManagementController extends PrivateController {
      */
     public function adduser(Request $request, UserPasswordEncoderInterface $passwordEncoder, LoggerInterface $logger) {
         $startTime = parent::startFunction("UserManagementController", "adduser");
+         $myNewUser = new User();
         try {
-            $myNewUser = new User();
             $form = $this->createUserForm($myNewUser);
             $form->handleRequest($request);
             $errors = null;
@@ -47,7 +47,7 @@ class UserManagementController extends PrivateController {
                 if (!Checker::isFilledArray($errors)) {
                     $myNewUser->setPassword($passwordEncoder->encodePassword($myNewUser, $myNewUser->getPassword()));
                     $myUsermanagementservice->addNewUser($myNewUser);
-                    return $this->redirectToRoute('userlist');
+                    return $this->render('usermanagement/adduserconfirm.html.twig');
                 }
             }
             return $this->render('usermanagement/adduser.html.twig', array(
@@ -56,7 +56,6 @@ class UserManagementController extends PrivateController {
         } catch (\Exception $ex) {
             $logger->info("Error While Adding User : " . $ex->getMessage());
             $errorMessage = "Error While Adding User. Please check the provided details";
-            $myNewUser = new User();
             $form = $this->createUserForm($myNewUser);
             return $this->render('usermanagement/adduser.html.twig', array(
                         'form' => $form->createView(), 'error' => $errorMessage
@@ -72,8 +71,8 @@ class UserManagementController extends PrivateController {
      */
     public function addgroup(Request $request, LoggerInterface $logger) {
         $startTime = parent::startFunction("UserManagementController", "addgroup");
+        $myNewGroup = new AppGroup();
         try {
-            $myNewGroup = new AppGroup();
             $form = $this->createGroupForm($myNewGroup);
             $form->handleRequest($request);
             $errors = null;
@@ -92,7 +91,6 @@ class UserManagementController extends PrivateController {
         } catch (\Exception $ex) {
             $logger->info("Error While Adding Group : " . $ex->getMessage());
             $errorMessage = "Error - Please check the provided details";
-            $myNewGroup = new AppGroup();
             $form = $this->createGroupForm($myNewGroup);
             return $this->render('usermanagement/addgroup.html.twig', array(
                         'form' => $form->createView(), 'error' => $errorMessage
@@ -125,10 +123,15 @@ class UserManagementController extends PrivateController {
      */
     public function deletegroupById($id) {
         $startTime = parent::startFunction("UserManagementController", "deletegroupById");
+        $error = null;
         try {
             $myUsermanagementservice = $this->get('app.usermanagementservice');
-            $myUsermanagementservice->deleteGroupById($id);
-            return $this->redirectToRoute('grouplist');
+            if($myUsermanagementservice->isGroupCanBeDeleted($id)){
+                $myUsermanagementservice->deleteGroupById($id);
+            }else{
+                $error = "Selected group Cant be deleted";
+            }
+            return $this->render('usermanagement/deletegroupconfirm.html.twig', array('error' =>$error));
         } catch (\Exception $ex) {
             return $this->redirectToRoute('grouplist');
         } finally {
@@ -251,11 +254,11 @@ class UserManagementController extends PrivateController {
      */
     private function createUserForm($myNewUser) {
         $form = $this->createFormBuilder($myNewUser)
-                ->add('username', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
-                ->add('password', PasswordType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
-                ->add('email', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
-                ->add('firstName', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
-                ->add('lastName', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
+                ->add('username', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control','maxlength'=>'100')))
+                ->add('password', PasswordType::class, array('required' => true, 'attr' => array('class' => 'form-control','maxlength'=>'100')))
+                ->add('email', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control','maxlength'=>'100')))
+                ->add('firstName', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control','maxlength'=>'100')))
+                ->add('lastName', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control','maxlength'=>'100')))
                 ->add('save', SubmitType::class, array(
                     'label' => 'Add User',
                     'attr' => array('class' => 'btn btn-primary mt-3')
@@ -264,15 +267,15 @@ class UserManagementController extends PrivateController {
         return $form;
     }
 
-    /**
+    /**,'maxlength'=>'100'
      * 
      * @param type $myNewUser
      * @return type
      */
     private function createGroupForm($myNewUser) {
         $form = $this->createFormBuilder($myNewUser)
-                ->add('groupName', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
-                ->add('groupDesc', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control')))
+                ->add('groupName', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control','maxlength'=>'100')))
+                ->add('groupDesc', TextType::class, array('required' => true, 'attr' => array('class' => 'form-control','maxlength'=>'100')))
                 ->add('save', SubmitType::class, array(
                     'label' => 'Add Group',
                     'attr' => array('class' => 'btn btn-primary mt-3')
